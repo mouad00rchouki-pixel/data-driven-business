@@ -30,6 +30,16 @@ class RecommendationService:
         """Add normalized metrics and profile scores."""
 
         prepared_records = [record.copy() for record in records]
+        # Collectors use plain names; database views expose the same values
+        # with a _raw suffix. Give both inputs the names normalization expects.
+        for record in prepared_records:
+            for metric_name in (
+                "intelligence_score", "tokens_per_second", "context_window",
+                "input_price_per_1m_tokens", "output_price_per_1m_tokens",
+                "ttft_seconds",
+            ):
+                if metric_name not in record:
+                    record[metric_name] = record.get(f"{metric_name}_raw")
         prepared_records = add_normalized_metrics(prepared_records)
         prepared_records = add_profile_scores(prepared_records)
         return prepared_records
